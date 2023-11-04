@@ -5,7 +5,7 @@ con = sqlite3.connect("clientdata.db")
 cur = con.cursor()
 
 cur.execute("""
-CREATE TABLE IF NOT EXIST clientdata (
+CREATE TABLE IF NOT EXISTS clientdata (
     id INTEGER PRIMARY KEY,
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
@@ -21,6 +21,8 @@ cur.execute("INSERT INTO clientdata (username, password, ip_addr, port) VALUES (
             (username1, password1, ip_addr1, port1))
 cur.execute("INSERT INTO clientdata (username, password, ip_addr, port) VALUES (?, ?, ?, ?)",
             (username2, password2, ip_addr2, port2))
+
+
 
 con.commit()
 con.close()

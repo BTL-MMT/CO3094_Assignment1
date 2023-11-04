@@ -49,7 +49,9 @@ class Server:
                         connection.send("Give me the filename.".encode())
                         fname_mess = connection.recv(1024).decode()
                         list = self.discover_file(fname_mess)
-                        print(list)
+                        send = json.dumps(list)
+                        connection.send(send.encode())
+
         except:
             print("eorr")
     
@@ -66,6 +68,29 @@ class Server:
                 connection.send("RESPONSE 201".encode())
             nclient +=1
 
+    def take_address(self, username):
+        con = sqlite3.connect("clientdata.db")
+        cur = con.cursor()
+        cur.execute("SELECT ip_addr, port FROM clientdata WHERE username = ?", (username,))
+        result = cur.fetchone()
+        return result
+    def take_lname(self, username, fname):
+        con = sqlite3.connect("clientdata.db")
+        cur = con.cursor()
+        cur.execute(f"SELECT lname FROM {username} WHERE fname = ?", (fname,))
+        result = cur.fetchone()
+        return result[0]
+    def make_dict(self, username, fname):
+        try:
+            ipaddr, port = self.take_address(username)
+            lname = self.take_lname(username, fname)
+            dict={}
+            dict["ipaddr"], dict["port"] = ipaddr, port
+            dict["lname"] = lname
+            return dict
+        except:
+            return None
+
     def discover_file(self, fname):
         #query list_username
         con = sqlite3.connect("clientdata.db")
@@ -77,12 +102,16 @@ class Server:
         #find user have file list username
         user_with_file = []
         for username in list_username:
+            print(username)
             list_file = self.discover(username)
-            if len(list_file) <= 0:
+            if list_file is None:
                 continue
-            if fname in list_file:
-                if self.ping_client(username):
-                    user_with_file.append(username)
+            else:
+                if fname in list_file:
+                    if self.ping_client(username):
+                        user_dict = self.make_dict(username, fname)
+                        if user_dict:
+                            user_with_file.append(user_dict)
         return user_with_file
 
     def add_to_database(self, ipaddr, port, lname, fname):
@@ -166,11 +195,7 @@ class Server:
                 self.can_publish = True
 
     def ping_client(self, username):
-        con = sqlite3.connect("clientdata.db")
-        cur = con.cursor()
-        cur.execute("SELECT ip_addr, port FROM clientdata WHERE username = ?", (username,))
-        result = cur.fetchone()
-        user_ipddr, user_port = result
+        user_ipddr, user_port = self.take_address(username)
         soc_ping = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try: 
             soc_ping.connect((user_ipddr, user_port+1)) 
@@ -194,8 +219,9 @@ class Server:
             cur.execute(f'SELECT fname FROM {hostname}')
             data = cur.fetchall()
             list_file = [list[0] for list in data]
-        con.close()
-        return list_file
+            con.close()
+            return list_file
+        return None
 
     def __del__(self):
         print("server off")
