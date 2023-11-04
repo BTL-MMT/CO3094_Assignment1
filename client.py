@@ -132,11 +132,8 @@ class Client:
     def take_file(self, ipaddr, port, lname):
         socket_send_take = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            print("in t f")
             socket_send_take.connect((ipaddr, port + 1))
-            print("in t f")
             socket_send_take.sendall("TAKE_FILE".encode())
-            print("in t f")
             rec = socket_send_take.recv(1024).decode()
 
             print("client", (ipaddr, port + 1), ", sends", rec)
@@ -160,7 +157,7 @@ class Client:
                     except:
                         break
 
-                directory = os.getcwd() + "/file_sharing"
+                directory = os.getcwd() + "\\file_sharing"
 
                 try:
                     os.mkdir(directory)
@@ -213,8 +210,8 @@ class Client:
 client = Client()
 if client.server_status:
     client.author("signin")
-    # client.publish("/home/yanzy/Downloads/Lab_1c_Packet Tracer_Simple  Network.pdf", "Lab_1c_Packet Tracer_Simple  Network.pdf")
-    client.fetch("Lab_1c_Packet Tracer_Simple  Network.pdf")
+    # client.publish("/home/yanzy/Downloads/Lab_4a_Wireshark_IP_v8.0 (1).pdf", "Lab_4a_Wireshark_IP_v8.0 (1).pdf" )
+    client.fetch("Lab_4a_Wireshark_IP_v8.0 (1).pdf")
 
 
 
