@@ -57,7 +57,7 @@ class Server:
     
     def connect_client(self):
         nclient = 0
-        while nclient < 2:
+        while nclient < 3 :
             try: 
                 connection, address = self.soc.accept()
                 thread = threading.Thread(target=self.handle_client, args=(connection,address, ))

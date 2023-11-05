@@ -2,6 +2,7 @@ import socket
 import threading
 import json
 import os
+from flask import Flask, render_template, request
 
 HOST = "127.0.0.1"
 SERVER_PORT = 56700
@@ -135,7 +136,7 @@ class Client:
             socket_send_take.connect((ipaddr, port + 1))
             socket_send_take.sendall("TAKE_FILE".encode())
             rec = socket_send_take.recv(1024).decode()
-
+  
             print("client", (ipaddr, port + 1), ", sends", rec)
             if rec == "500_oke":
                 socket_send_take.sendall(lname.encode())
@@ -157,7 +158,7 @@ class Client:
                     except:
                         break
 
-                directory = os.getcwd() + "\\file_sharing"
+                directory = os.getcwd() + "/file_sharing"
 
                 try:
                     os.mkdir(directory)
@@ -209,10 +210,17 @@ class Client:
 
 client = Client()
 if client.server_status:
-    client.author("signin")
+    client.author("signup")
     # client.publish("/home/yanzy/Downloads/Lab_4a_Wireshark_IP_v8.0 (1).pdf", "Lab_4a_Wireshark_IP_v8.0 (1).pdf" )
     client.fetch("Lab_4a_Wireshark_IP_v8.0 (1).pdf")
 
+app = Flask(__name__)
 
+@app.route("/")
+def hello_world():
+    return render_template("index.html")
 
-
+@app.route("/take_file", methods=["POST"])
+def take_file():
+    print(request.form.get("filename"))
+    return render_template("index.html")
