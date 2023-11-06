@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
+    <style>
+        #discoverForm,
+        #pingForm {
+            display: none;
+            width: fit-content;
+            width: 70%;
+
+        }
+
+        #title {
+            color: aqua;
+            font-size: 50px;
+            width: fit-content;
+        }
+
+        .layout {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            justify-content: center;
+
+        }
+
+        .app {
+            position: relative;
+            width: 80%;
+            height: 50px;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            z-index: 1;
+        }
+
+        form {
+            width: fit-content;
+        }
+
+        .content {
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            width: 100%;
+            top: 56px;
+            block-size: fit-content;
+
+        }
+
+        .modal-container {
+            margin-top: 220px;
+        }
+
+        .modal-backdrop {
+            display: none;
+        }
+
+        .modal-body>form {
+            width: 100%;
+        }
+
+        .discover-container,
+        .ping-container {
+            display: flex;
+            justify-content: center;
+            margin-top: -150px;
+            position: absolute;
+            margin: auto auto;
+        }
+
+        #discoverForm >form,
+        #pingForm >form {
+            width: 100%;
+        }
+        .discover-container {
+            display: flex;
+        }
+
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const discoverNavBtn = document.querySelector(".discover-nav-btn");
+            const pingNavBtn = document.querySelector(".ping-nav-btn");
+            const discoverForm = document.getElementById("discoverForm");
+            const pingForm = document.getElementById("pingForm");
+
+
+            discoverNavBtn.addEventListener("click", function () {
+                discoverForm.style.display = "block";
+                pingForm.style.display = "none";
+            });
+
+            pingNavBtn.addEventListener("click", function () {
+                discoverForm.style.display = "none";
+                pingForm.style.display = "block";
+            });
+        });
+        // HANDLE SUBMIT DISCOVER FORM
+        document.getElementById("discoverForm").addEventListener("submit", function(event) {
+        event.preventDefault(); // Ngăn chặn form submit mặc định
+
+        var hostname = document.getElementById("inputHostNameDiscover").value;
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/discover", true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var response = xhr.responseText;
+            document.getElementById("discover-list").innerHTML = response;
+        }
+        };
+        xhr.send("HostName=" + encodeURIComponent(hostname));
+        });
+        
+        // HANDLE SUBMIT PING FORM
+        document.getElementById("pingForm").addEventListener("submit", function(event) {
+        event.preventDefault(); // Ngăn chặn form submit mặc định
+
+        var hostname = document.getElementById("inputHostNamePing").value;
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/ping", true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var response = xhr.responseText;
+            document.getElementById("pingResult").innerHTML = response;
+        }
+        };
+        xhr.send("HostName=" + encodeURIComponent(hostname));
+        });
+    </script>
+</head>
+
+<body>
+    <div class="layout">
+        <div class="container app">
+            <nav class="row pd-5 navbar navbar-expand-lg text-bg-light border border-black">
+                <div class="container-fluid">
+                    <a class="navbar-brand fs-3" href="#">Server</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li class="ms-3 nav-item">
+                                <a class="nav-link discover-nav-btn {% if isServerOn %}active{% endif %}"
+                                    aria-current="page" href="#">Discover</a>
+                            </li>
+                            <li class="ms-3 nav-item">
+                                <a class="nav-link ping-nav-btn {% if isServerOn %}active{% endif %}" href="#">Ping</a>
+                            </li>
+                        </ul>
+                        <form action="/turn_on_server" method="POST">
+                            <input type="text" placeholder="On/Off" name="onOff"> 
+                        </form>
+                    </div>
+                </div>
+            </nav>
+            <div class="row content text-bg-dark border border-black p-5" style="min-height: 600px; height: fit-content;">
+                <div class=" discover-container">
+                    <div id="discoverForm">
+                        <form action="/discover" method="POST" enctype="multipart/form-data">
+                            <h1 class="text-center">Discover</h1>
+                            <label for="inputHostNameDiscover" class="form-label">HostName</label>
+                            <input type="text" id="inputHostNameDiscover" name='HostName' class="form-control"
+                                placeholder="Enter HostName">
+                            <div class="w-100 d-flex justify-content-center"><button class="btn btn-outline-light mt-3"
+                                    type="submit" onsubmit="handleSubmit(event)" >Discover</button></div>
+                        </form>
+                        <div class="discover-list mt-3" style="height: 300px; overflow: auto;">
+                            <ul class="list-group">
+                                {% for item in my_array %}
+                                <li class="list-group-item">{{ item }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="ping-container">
+                    <div id="pingForm">
+                        <form action="/ping" method="POST" enctype="multipart/form-data">
+                            <h1 class="text-center">Ping</h1>
+                            <label for="inputHostNamePing" class="form-label">HostName</label>
+                            <input type="text" id="inputHostNamePing" name='HostName' class="form-control"
+                                placeholder="Enter HostName">
+                            <div class="w-100 d-flex justify-content-center"><button class="btn btn-outline-light mt-3"
+                                    type="submit" onsubmit="handleSubmit(event)">Ping</button></div>
+                        </form>
+                        <div id="pingResult">
+                            {% if status %}
+                            <p>Alive</p>
+                            {% else %}
+                            <p>Dead</p>
+                            {% endif %}
+                          </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
