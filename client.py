@@ -2,7 +2,8 @@ import socket
 import threading
 import json
 import os
-from flask import Flask, render_template, request
+# from flask import Flask, render_template, request
+# import click
 
 HOST = "127.0.0.1"
 SERVER_PORT = 56700
@@ -28,13 +29,13 @@ class Client:
             print("client address:", ipaddr, ":", port)
             self.soc.send("CONNECT".encode())
             mess_from_server = self.soc.recv(1024).decode()
-            print(mess_from_server)
+            # print(mess_from_server)
             if mess_from_server == 'RESPONSE 200':
                 return True
         except Exception as e:
-            print(f"Error: {e}")
+            # print(f"Error: {e}")
             return False
-    
+
     def signin_client(self):
         self.soc.send("SIGNIN".encode())
         mess_from_server = self.soc.recv(1024).decode()
@@ -43,7 +44,7 @@ class Client:
         self.soc.send(input(mess_from_server).encode())
 
         mess_from_server = self.soc.recv(1024).decode()
-        print(mess_from_server)
+        # print(mess_from_server)
         if mess_from_server == "Login successful.":
             return True
         return False
@@ -56,7 +57,7 @@ class Client:
         self.soc.send(input(mess_from_server).encode())
 
         mess_from_server = self.soc.recv(1024).decode()
-        print(mess_from_server)
+        # print(mess_from_server)
         if mess_from_server == "Signup successful.":
             return True
         return False
@@ -64,37 +65,39 @@ class Client:
     def listen_server(self):
         while self.server_status:
             try:
-                print("I'm waiting for you...")
+                # print("I'm waiting for you...")
                 server_soc, address = self.soc_alive.accept()
                 mess = server_soc.recv(1024).decode()
-                print(mess)
+                # print(mess)
                 if "PING" in mess:
                     server_soc.send("300_alive".encode())
                 elif "TAKE_FILE" in mess:
-                    
                     server_soc.send("500_oke".encode())
                     self.send_file(server_soc)
             except socket.error as e:
-                server_soc.send("301_dead".encode())
-                print(f"Error: {e}")
                 break
 
-    def author (self, message):
+    def author(self, message):
         if message == "signin":
             if self.signin_client():
-                thread = threading.Thread(target=client.listen_server)
+                thread = threading.Thread(target=self.listen_server)
                 thread.daemon = False
                 thread.start()
+                return True
             else:
-                print("login fail")
+                # print("login fail")
+                return False
         else:
+            print(message)
             if self.signup_client():
-                thread = threading.Thread(target=client.listen_server)
+                thread = threading.Thread(target=self.listen_server)
                 thread.daemon = False
                 thread.start()
-            else: 
-                print("signup fail")
-    
+                return True
+            else:
+                # print("signup fail")
+                return False
+
     def publish(self, lname, fname):
         self.soc.send("ASK -publish".encode())
         try:
@@ -104,12 +107,14 @@ class Client:
                 to_send = json.dumps(to_send)
                 self.soc.send(to_send.encode())
             elif mess_from_server == "You can't publish any file":
-                print("oke khong publish nua")
+                # print("oke khong publish nua")
+                return False
+            return True
         except:
-            print("erroroororororo")
-            
+            # print("erroroororororo")
+            return False
+
     def send_file(self, connection):
-        print("in g f")
         lname = connection.recv(1024).decode()
 
         if os.path.exists(lname):
@@ -129,14 +134,14 @@ class Client:
             file.close()
         else:
             connection.sendall("RESPONSE 404".encode())
-    
+
     def take_file(self, ipaddr, port, lname):
         socket_send_take = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             socket_send_take.connect((ipaddr, port + 1))
             socket_send_take.sendall("TAKE_FILE".encode())
             rec = socket_send_take.recv(1024).decode()
-  
+
             print("client", (ipaddr, port + 1), ", sends", rec)
             if rec == "500_oke":
                 socket_send_take.sendall(lname.encode())
@@ -170,57 +175,62 @@ class Client:
 
                 file.write(data)
                 file.close()
-                print("fname: ", file_name)
+                # print("fname: ", file_name)
                 socket_send_take.close()
 
                 return file_name
 
         except:
             return None
-    def fetch (self, fname):
+
+    def fetch(self, fname):
         self.soc.send("ASK -file".encode())
         try:
             mess_from_server = self.soc.recv(1024).decode()
-            print(mess_from_server)
+            # print(mess_from_server)
             if mess_from_server == "Give me the filename.":
                 self.soc.send(fname.encode())
                 list = self.soc.recv(1024).decode()
                 list = json.loads(list)
-                print(list)
+                # print(list)
                 for l in list:
                     ipaddr, port = l["ipaddr"], l["port"]
                     lname = l["lname"]
-                    print(ipaddr, port, lname)
+                    # print(ipaddr, port, lname)
                     if (ipaddr, port) == self.soc.getsockname():
-                        print("File in your local: ", lname)
-                        return None
+                        # print("File in your local: ", lname)
+                        return "1"
                     else:
                         filename = self.take_file(ipaddr, port, lname)
                     if filename:
                         print(filename)
                         return filename
         except:
-            print("ask file errror")
-            return None
+            # print("ask file errror")
+            return "3"
 
     def __del__(self):
         print("client off !!")
-        self.server_status = False
-        self.soc.close()
+        try:
+            self.server_status = False
+            self.soc.send("707 exit".encode())
+            self.soc.close()
+        except:
+            None
 
-client = Client()
-if client.server_status:
-    client.author("signup")
-    # client.publish("/home/yanzy/Downloads/Lab_4a_Wireshark_IP_v8.0 (1).pdf", "Lab_4a_Wireshark_IP_v8.0 (1).pdf" )
-    client.fetch("Lab_4a_Wireshark_IP_v8.0 (1).pdf")
+# client = Client()
+# if client.server_status:
+#     client.author("signin")
+#     # client.publish("/home/yanzy/Downloads/Lab_4a_Wireshark_IP_v8.0 (1).pdf", "Lab_4a_Wireshark_IP_v8.0 (1).pdf" )
+#     client.fetch("Lab_4a_Wireshark_IP_v8.0 (1).pdf")
 
-app = Flask(__name__)
+# app = Flask(__name__)
 
-@app.route("/")
-def hello_world():
-    return render_template("index.html")
+# @app.route("/")
+# def hello_world():
+#     return render_template("index.html")
 
-@app.route("/take_file", methods=["POST"])
-def take_file():
-    print(request.form.get("filename"))
-    return render_template("index.html")
+# @app.route("/take_file", methods=["POST"])
+# def take_file():
+#     print(request.form.get("filename"))
+#     return render_template("index.html")

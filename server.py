@@ -4,7 +4,7 @@ import sqlite3
 import hashlib
 import json
 
-HOST = "127.0.0.1" #
+HOST = "127.0.0.1"
 SERVER_PORT = 56700
 FORMAT = "utf8"
 
@@ -16,27 +16,35 @@ class Server:
         self.soc.bind((HOST, SERVER_PORT))
         self.soc.listen()
         self.can_publish = False
+
+        self.status = True
+        self.clients = 0
         print("Server side")
         print("server:", HOST, ":", SERVER_PORT)
         print("waiting")
-    
+
     def handle_client(self, connection, address):
-        try:
-            while True:
+        while True:
+            try:
                 mess = connection.recv(1024).decode()
                 if not mess:
                     break
-                print(mess)
-                if mess == "CONNECT": 
+                # print(mess)
+                if mess == "CONNECT":
                     connection.send("RESPONSE 200".encode())
                 elif mess == "SIGNIN":
                     self.handle_login(connection, address)
                 elif mess == "SIGNUP":
                     self.handle_signup(connection, address)
+                elif mess == "707 exit":
+                    self.clients -= 1
+                    connection.close()
+                    break
                 elif "ASK" in mess:
                     if mess == "ASK -publish":
                         if self.can_publish == True:
-                            connection.send("Give me the lname and fname".encode())
+                            connection.send(
+                                "Give me the lname and fname".encode())
                             mess = connection.recv(1024).decode()
                             mess = json.loads(mess)
                             lname, fname = mess["lname"], mess["fname"]
@@ -51,40 +59,51 @@ class Server:
                         list = self.discover_file(fname_mess)
                         send = json.dumps(list)
                         connection.send(send.encode())
+            except:
+                # print("eorr")
+                self.clients -= 1
+                # print(self.clients)
+                connection.close()
+                break
 
-        except:
-            print("eorr")
-    
     def connect_client(self):
-        nclient = 0
-        while nclient < 3 :
-            try: 
+        while self.status:
+            try:
                 connection, address = self.soc.accept()
-                thread = threading.Thread(target=self.handle_client, args=(connection,address, ))
+                if self.clients >= 3:
+                    connection.send("RESPONSE 201".encode())
+                    connection.close()
+                    continue
+                thread = threading.Thread(
+                    target=self.handle_client, args=(connection, address, ))
                 thread.daemon = False
                 thread.start()
+
+                self.clients += 1
             except:
-                print("errror!!!")
-                connection.send("RESPONSE 201".encode())
-            nclient +=1
+                # print("errror!!!")
+                break
 
     def take_address(self, username):
         con = sqlite3.connect("clientdata.db")
         cur = con.cursor()
-        cur.execute("SELECT ip_addr, port FROM clientdata WHERE username = ?", (username,))
+        cur.execute(
+            "SELECT ip_addr, port FROM clientdata WHERE username = ?", [username])
         result = cur.fetchone()
         return result
+
     def take_lname(self, username, fname):
         con = sqlite3.connect("clientdata.db")
         cur = con.cursor()
         cur.execute(f"SELECT lname FROM {username} WHERE fname = ?", (fname,))
         result = cur.fetchone()
         return result[0]
+
     def make_dict(self, username, fname):
         try:
             ipaddr, port = self.take_address(username)
             lname = self.take_lname(username, fname)
-            dict={}
+            dict = {}
             dict["ipaddr"], dict["port"] = ipaddr, port
             dict["lname"] = lname
             return dict
@@ -92,17 +111,16 @@ class Server:
             return None
 
     def discover_file(self, fname):
-        #query list_username
+        # query list_username
         con = sqlite3.connect("clientdata.db")
         cur = con.cursor()
         cur.execute('SELECT username FROM clientdata')
         username_tuples = cur.fetchall()
         con.close()
         list_username = [username[0] for username in username_tuples]
-        #find user have file list username
+        # find user have file list username
         user_with_file = []
         for username in list_username:
-            print(username)
             list_file = self.discover(username)
             if list_file is None:
                 continue
@@ -117,12 +135,13 @@ class Server:
     def add_to_database(self, ipaddr, port, lname, fname):
         con = sqlite3.connect("clientdata.db")
         cur = con.cursor()
-        cur.execute("SELECT username FROM clientdata WHERE ip_addr = ? and port = ?" , (ipaddr, port))
+        cur.execute(
+            "SELECT username FROM clientdata WHERE ip_addr = ? and port = ?", (ipaddr, port))
         result = cur.fetchone()
         if result is not None:
             username = result[0]
         else:
-            print("User not found based on the provided IP and port")
+            # print("User not found based on the provided IP and port")
             con.close()
             return False
         create_table = f'''
@@ -136,19 +155,20 @@ class Server:
         cur.execute(f"SELECT fname FROM {username} WHERE fname = ?", (fname,))
         result = cur.fetchone()
         if result is not None:
-            cur.execute(f"UPDATE {username} SET lname = ? WHERE fname = ?", (lname, fname))
-        else:  
+            cur.execute(
+                f"UPDATE {username} SET lname = ? WHERE fname = ?", (lname, fname))
+        else:
             insert_data = f"INSERT INTO {username} (lname, fname) VALUES (?, ?)"
             cur.execute(insert_data, (lname, fname))
         con.commit()
         con.close()
         return True
 
-    def publish(self, ipaddr,port, lname, fname):
-        if self.add_to_database(ipaddr, port, lname, fname):
-            print("add_oke")
-        else:
-            print("add_fail")
+    def publish(self, ipaddr, port, lname, fname):
+        self.add_to_database(ipaddr, port, lname, fname)
+        # print("add_oke")
+        # else:
+        # print("add_fail")
 
     def handle_login(self, c, address):
         con = sqlite3.connect("clientdata.db")
@@ -159,20 +179,23 @@ class Server:
         password = c.recv(1024).decode()
         password = hashlib.sha256(password.encode()).hexdigest()
 
-        cur.execute("SELECT * FROM clientdata WHERE username = ? and password = ?", (username, password))
+        cur.execute(
+            "SELECT * FROM clientdata WHERE username = ? and password = ?", (username, password))
         if cur.fetchall():
             c.send("Login successful.".encode())
             self.can_publish = True
-            #save the new ip and port yo the database
+            # save the new ip and port yo the database
             new_ip_addr = address[0]
             new_port = address[1]
-            cur.execute("UPDATE clientdata SET ip_addr = ? WHERE username = ?", (new_ip_addr, username))
-            cur.execute("UPDATE clientdata SET port = ? WHERE username = ?", (new_port, username))
+            cur.execute(
+                "UPDATE clientdata SET ip_addr = ? WHERE username = ?", (new_ip_addr, username))
+            cur.execute(
+                "UPDATE clientdata SET port = ? WHERE username = ?", (new_port, username))
             con.commit()
             con.close()
         else:
             c.send("Login fail.".encode())
-        
+
     def handle_signup(self, c, address):
         con = sqlite3.connect("clientdata.db")
         cur = con.cursor()
@@ -181,15 +204,17 @@ class Server:
         c.send("Password: ".encode())
         pwd = c.recv(1024).decode()
         pwd = hashlib.sha256(pwd.encode()).hexdigest()
-        if usname != '' and pwd !='':
-            cur.execute("SELECT username from clientdata WHERE username = ?", [usname])
+        if usname != '' and pwd != '':
+            cur.execute(
+                "SELECT username from clientdata WHERE username = ?", [usname])
             if cur.fetchone() is not None:
                 c.send("Signup fail.".encode())
             else:
                 pwd = hashlib.sha256(pwd.encode()).hexdigest()
                 new_ip_addr = address[0]
-                new_port = address[1]                
-                cur.execute("INSERT INTO clientdata (username, password, ip_addr, port) VALUES (?,?,?,?)", (usname, pwd, new_ip_addr, new_port))
+                new_port = address[1]
+                cur.execute("INSERT INTO clientdata (username, password, ip_addr, port) VALUES (?,?,?,?)",
+                            (usname, pwd, new_ip_addr, new_port))
                 con.commit()
                 c.send("Signup successful.".encode())
                 self.can_publish = True
@@ -197,23 +222,24 @@ class Server:
     def ping_client(self, username):
         user_ipddr, user_port = self.take_address(username)
         soc_ping = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try: 
-            soc_ping.connect((user_ipddr, user_port+1)) 
+        try:
+            soc_ping.connect((user_ipddr, user_port+1))
             soc_ping.send(("PING: " + user_ipddr).encode())
             mess_from_server = soc_ping.recv(1024).decode()
-            print(mess_from_server)
+            # print(mess_from_server)
             soc_ping.close()
             if mess_from_server == '300_alive':
                 return True
             return False
         except:
             return False
-        
+
     def discover(self, hostname):
         list_file = []
         con = sqlite3.connect("clientdata.db")
         cur = con.cursor()
-        cur.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name=?", (hostname,))
+        cur.execute(
+            f"SELECT name FROM sqlite_master WHERE type='table' AND name=?", (hostname,))
         result = cur.fetchone()
         if result is not None:
             cur.execute(f'SELECT fname FROM {hostname}')
@@ -225,7 +251,6 @@ class Server:
 
     def __del__(self):
         print("server off")
-        self.soc.close()
 
-server = Server()
-server.connect_client()
+# server = Server()
+# server.connect_client()
