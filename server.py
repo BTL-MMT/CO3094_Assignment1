@@ -240,7 +240,7 @@ def hello_world():
 @app.route('/discover', methods=["POST"])
 def display_list():
     hostname = request.form.get("HostName")
-    my_array = server.discover_file(hostname)
+    my_array = server.discover(hostname)
     print (my_array)
     return render_template('server.html', my_array = my_array)
     
