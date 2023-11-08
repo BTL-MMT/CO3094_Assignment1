@@ -2,7 +2,7 @@ import socket
 import threading
 import json
 import os
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, flash, redirect, url_for
 
 HOST = "127.0.0.1"
 SERVER_PORT = 56700
@@ -230,8 +230,10 @@ client = Client()
 app = Flask(__name__)
 
 @app.route("/")
-def hello_world():
-    return render_template("client.html", isLogin = isLogin)
+def home():
+    global isLogin
+    global user
+    return render_template("client.html", isLogin = isLogin, user=  user)
 
 @app.route("/signin", methods=["POST"])
 def signin_UI():
@@ -239,10 +241,10 @@ def signin_UI():
     global user 
     username = request.form.get("username") 
     password = request.form.get("password")
-    # Perform your login authentication logic here
     client.author("signin", username, password)
-    print(username, password, isLogin)
     return render_template("client.html", isLogin = isLogin, user = user)
+
+        
 
 @app.route("/signup", methods=["POST"])
 def signup_UI():
@@ -250,35 +252,33 @@ def signup_UI():
     global user 
     username = request.form.get("username") 
     password = request.form.get("password")
-    # Perform your login authentication logic here
     client.author("signup", username, password)
-    print(username, password, isLogin)
     return render_template("client.html", isLogin = isLogin, user = user)
 
 @app.route("/signin/publish", methods=["POST"])
 def publish_UI():
     global isLogin
     global user
-    if isLogin:  # Check if the user is logged in
+    if isLogin: 
         lname = request.form.get("lname")
         fname = request.form.get("fname")
         print(lname, fname)
         client.publish(lname, fname)
         return render_template("client.html", isLogin = isLogin, user = user)
     else:
-        return "Need Login"  # Handle unauthorized access
+        return "Need Login"
 
 @app.route("/signin/fetch", methods=["POST"])
 def fetch_UI():
     global isLogin
     global user
-    if isLogin:  # Check if the user is logged in
+    if isLogin:
         fname = request.form.get("fname")
         client.fetch(fname)
         print(fname)
         return render_template("client.html", isLogin = isLogin, user = user)
     else:
-        return "Need Login"  # Handle unauthorized access
+        return "Need Login" 
 
 if __name__ == "__main__":
-    app.run(port=5033)
+    app.run(port=5000)

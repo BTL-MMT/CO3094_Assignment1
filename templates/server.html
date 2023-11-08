@@ -30,7 +30,7 @@
             width: 100vw;
             height: 100vh;
             justify-content: center;
-
+            background-color: darkseagreen;
         }
 
         .app {
@@ -99,50 +99,27 @@
 
 
             discoverNavBtn.addEventListener("click", function () {
+                event.preventDefault();
                 discoverForm.style.display = "block";
                 pingForm.style.display = "none";
             });
 
             pingNavBtn.addEventListener("click", function () {
+                event.preventDefault();
                 discoverForm.style.display = "none";
                 pingForm.style.display = "block";
             });
         });
         // HANDLE SUBMIT DISCOVER FORM
         document.getElementById("discoverForm").addEventListener("submit", function(event) {
-        event.preventDefault(); // Ngăn chặn form submit mặc định
-
-        var hostname = document.getElementById("inputHostNameDiscover").value;
-
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", "/discover", true);
-        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-        xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            var response = xhr.responseText;
-            document.getElementById("discover-list").innerHTML = response;
-        }
-        };
-        xhr.send("HostName=" + encodeURIComponent(hostname));
+            event.preventDefault(); 
         });
         
         // HANDLE SUBMIT PING FORM
         document.getElementById("pingForm").addEventListener("submit", function(event) {
-        event.preventDefault(); // Ngăn chặn form submit mặc định
-
-        var hostname = document.getElementById("inputHostNamePing").value;
-
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", "/ping", true);
-        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-        xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            var response = xhr.responseText;
-            document.getElementById("pingResult").innerHTML = response;
-        }
-        };
-        xhr.send("HostName=" + encodeURIComponent(hostname));
+            event.preventDefault(); 
         });
+        
     </script>
 </head>
 
@@ -162,7 +139,8 @@
                         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                             <li class="ms-3 nav-item">
                                 <a class="nav-link discover-nav-btn {% if isServerOn %}active{% endif %}"
-                                    aria-current="page" href="#">Discover</a>
+                                    aria-current="page" href=
+                                "#">Discover</a>
                             </li>
                             <li class="ms-3 nav-item">
                                 <a class="nav-link ping-nav-btn {% if isServerOn %}active{% endif %}" href="#">Ping</a>

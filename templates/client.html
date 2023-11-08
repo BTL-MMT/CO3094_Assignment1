@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,62 +11,82 @@
         integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
         crossorigin="anonymous"></script>
     <style>
-        #publish, #fetch {
+        #publish,
+        #fetch {
             display: none;
             width: fit-content;
         }
+
         #title {
             color: aqua;
             font-size: 50px;
             width: fit-content;
         }
-        .layout { 
+
+        .layout {
             display: flex;
             width: 100vw;
             height: 100vh;
             justify-content: center;
             padding-top: 60px;
+            background-color: darkseagreen;
         }
+
         .app {
             position: relative;
             width: 80%;
-            height: 50px;
             margin-top: 50px;
+            background-color: rgba(0, 0, 0, 0.3);
+            box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.5);
+            height: 406px;
         }
+
         nav {
             position: fixed;
             top: 0;
             z-index: 1;
         }
+
         form {
             width: fit-content;
         }
+
         .content {
             position: absolute;
             display: flex;
             justify-content: center;
             align-items: center;
+            background-color: rgba(0, 0, 0, 0.3);
             width: 100%;
             top: 56px;
         }
+
         .modal-container {
-            margin-top: 220px ;
+            margin-top: 130px;
         }
+
         .modal-backdrop {
             display: none;
         }
-        .modal-body > form {
+
+        .modal-body>form {
             width: 100%;
         }
-        .publish-container,.fetch-container {
+
+        .publish-container,
+        .fetch-container {
             display: flex;
             justify-content: center;
             margin-top: -150px;
         }
-        #publish, #fetch {
+
+        #publish,
+        #fetch {
             width: 70%;
         }
-        #publish > form, #fetch > form{ 
+
+        #publish>form,
+        #fetch>form {
             width: 100%;
         }
     </style>
@@ -91,14 +112,16 @@
         });
     </script>
 </head>
+
 <body>
     <div class="layout">
         <div class="container app">
             <nav class="row pd-5 navbar navbar-expand-lg text-bg-light border border-black">
                 <div class="container-fluid">
                     <a class="navbar-brand fs-3" href="#">Client</a>
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
                     </button>
                     <div class="collapse navbar-collapse" id="navbarSupportedContent">
@@ -114,37 +137,39 @@
                     {% if isLogin %}
                     <div>
                         Hostname : {{user}}
-                        <from action="/signout" method="POST">
-                            <input type="submit" class="btn btn-primary">Sign out</input>
-                        </from>
                     </div>
                     {% else %}
                     <!-- SIGNIN -->
                     <div>
                         <!-- Login -->
-                        <div id="singin">        
-                            <button type="button" class="btn btn btn-outline-dark ms-3 " data-bs-toggle="modal" data-bs-target="#mySiginModal">
+                        <div id="singin">
+                            <button type="button" class="btn btn btn-outline-dark ms-3 " data-bs-toggle="modal"
+                                data-bs-target="#mySiginModal">
                                 Sign in
                             </button>
-                            
+
                             <!-- Modal -->
-                            <div class="modal fade modal-container" id="mySiginModal" tabindex="-1" aria-labelledby="mySiginModalLabel" aria-hidden="true">
+                            <div class="modal fade modal-container" id="mySiginModal" tabindex="-1"
+                                aria-labelledby="mySiginModalLabel" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <h5 class="modal-title " id="mySiginModalLabel">Sign in</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
                                         </div>
                                         <div class="modal-body">
                                             <!-- Form -->
                                             <form action="/signin" method="POST" enctype="multipart/form-data">
                                                 <div class="mb-3">
                                                     <label for="name" class="form-label">Username:</label>
-                                                    <input type="text" name="username" class="form-control" id="name" placeholder="Enter username">
+                                                    <input type="text" name="username" class="form-control" id="name"
+                                                        placeholder="Enter username">
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="password" class="form-label">Password:</label>
-                                                    <input type="password" name="password" class="form-control" id="password" placeholder="Enter password">
+                                                    <input type="password" name="password" class="form-control"
+                                                        id="password" placeholder="Enter password">
                                                 </div>
                                                 <button type="submit" class="btn btn-primary">Sign in</button>
                                             </form>
@@ -158,29 +183,33 @@
                     <div>
                         <!-- sign up -->
                         <div id="signup">
-                            <button type="button" class="btn btn btn-outline-dark ms-3 " data-bs-toggle="modal" data-bs-target="#mySignupModal">
+                            <button type="button" class="btn btn btn-outline-dark ms-3 " data-bs-toggle="modal"
+                                data-bs-target="#mySignupModal">
                                 Sign up
                             </button>
-                    
+
                             <!-- Modal -->
-                            <div class="modal fade modal-container" id="mySignupModal" tabindex="-1" aria-labelledby="mySignupModalLabel"
-                                aria-hidden="true">
+                            <div class="modal fade modal-container" id="mySignupModal" tabindex="-1"
+                                aria-labelledby="mySignupModalLabel" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <h5 class="modal-title " id="mySignupModalLabel">Sign up</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
                                         </div>
                                         <div class="modal-body">
                                             <!-- Form -->
                                             <form action="/signup" method="POST" enctype="multipart/form-data">
                                                 <div class="mb-3">
                                                     <label for="name" class="form-label">Username:</label>
-                                                    <input type="text" name="username" class="form-control" id="name" placeholder="Enter username">
+                                                    <input type="text" name="username" class="form-control" id="name"
+                                                        placeholder="Enter username">
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="password" class="form-label">Password:</label>
-                                                    <input type="password" name="password" class="form-control" id="password" placeholder="Enter password">
+                                                    <input type="password" name="password" class="form-control"
+                                                        id="password" placeholder="Enter password">
                                                 </div>
                                                 <button type="submit" class="btn btn-primary">Sign up</button>
                                             </form>
@@ -190,20 +219,30 @@
                             </div>
                         </div>
                     </div>
+                    {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                    <div class="alert alert-danger mt-3">
+                        {{ messages[0] }}
+                    </div>
+                    {% endif %}
+                    {% endwith %}
                     {% endif %}
                 </div>
             </nav>
             <div class="row content text-bg-dark border border-black" style="height:350px;">
-                <div class="publish-container mt-5"> 
+                <div class="publish-container mt-5">
                     <div id="publish">
                         <form action="/signin/publish" method="POST" enctype="multipart/form-data">
                             <h1 class="text-center"> Publish file</h1>
                             <label for="inputlname" class="form-label">Lname</label>
-                            <input type="text" id="inputlname" name= 'lname' class="form-control" placeholder="Enter lname">
+                            <input type="text" id="inputlname" name='lname' class="form-control"
+                                placeholder="Enter lname">
                             <label for="inputfname" class="form-label">Fname</label>
-                            <input type="text" id="inputfname" name='fname' class="form-control" placeholder="Enter fname">
-                            <div class="w-100 d-flex justify-content-center"><button class="btn btn-outline-light mt-3" type="submit">Publish</button></div>
-                        </form>                        
+                            <input type="text" id="inputfname" name='fname' class="form-control"
+                                placeholder="Enter fname">
+                            <div class="w-100 d-flex justify-content-center"><button class="btn btn-outline-light mt-3"
+                                    type="submit">Publish</button></div>
+                        </form>
                     </div>
                 </div>
                 <div class="fetch-container">
@@ -211,7 +250,8 @@
                         <form action="/signin/fetch" method="POST" enctype="multipart/form-data">
                             <h1 class="text-center"> Fetch file</h1>
                             <label for="inputfname" class="form-label">Fname</label>
-                            <input type="text" id="inputfname" name='fname' class="form-control" placeholder="Enter fname">
+                            <input type="text" id="inputfname" name='fname' class="form-control"
+                                placeholder="Enter fname">
                             <div class="w-100 d-flex justify-content-center"><button class="btn btn-outline-light mt-3"
                                     type="submit">Fetch</button></div>
                         </form>
@@ -222,4 +262,5 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

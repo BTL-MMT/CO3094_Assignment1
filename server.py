@@ -3,7 +3,7 @@ import threading
 import sqlite3
 import hashlib
 import json
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, flash, redirect, url_for
 
 HOST = "127.0.0.1"
 SERVER_PORT = 56700
@@ -233,15 +233,13 @@ server = Server()
 app = Flask(__name__)
 # server.connect_client()
 @app.route("/")
-def hello_world():
-
+def home():
     return render_template("server.html")
 
 @app.route('/discover', methods=["POST"])
 def display_list():
     hostname = request.form.get("HostName")
     my_array = server.discover(hostname)
-    print (my_array)
     return render_template('server.html', my_array = my_array)
     
 @app.route('/ping', methods=["POST"])
@@ -253,9 +251,9 @@ def ping_client():
 @app.route('/turn_on_server', methods=["POST"])
 def turn_on_server():
     res = request.form.get('onOff')
-    if res == 'on' : 
+    if res == 'on' or res == 'ON' or res == 'On' or res == 'oN': 
         server.connect_client()
-    return render_template("server.html")
+    return redirect(url_for('home'))
 
 # @app.route('/turn_off_server')
 # def turn_off_server():
